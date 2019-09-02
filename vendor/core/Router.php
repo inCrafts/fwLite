@@ -1,5 +1,7 @@
 <?php
 
+namespace vendor\core;
+
 /**
  * Таблица маршрутов
  * @var array
@@ -54,7 +56,6 @@ class Router
     public static function matchRoute($url) {
         foreach (self::$routes as $pattern => $route) {
             if (preg_match("#$pattern#i", $url, $matches)) {
-                debug($matches);
                 foreach ($matches as $key => $val) {
                     if (is_string($key)) {
                         $route[$key] = $val;
@@ -63,8 +64,8 @@ class Router
                 if (!isset($route['action'])) {
                     $route['action'] = 'index';
                 }
+                $route['controller'] = self::upperCamelCase($route['controller']);
                 self::$route = $route;
-                debug(self::$route);
                 return true;
             }
         }
@@ -77,13 +78,15 @@ class Router
      * @return void
      */
     public static function dispatch($url) {
+        $url = self::removeQueryString($url);
         if (self::matchRoute($url)) {
-            $controller = self::upperCamelCase(self::$route['controller']);
+            $controller = 'app\controllers\\' . self::$route['controller'];
             if (class_exists($controller)) {
-                $cObj = new $controller;
+                $cObj = new $controller(self::$route);
                 $action = self::lowerCamelCase(self::$route['action']) . 'Action';
                 if (method_exists($cObj, $action)) {
                     $cObj->$action();
+                    $cObj->getView();
                 } else {
                     echo "Метод <strong>$controller::$action</strong> не найден";
                 }
@@ -114,4 +117,19 @@ class Router
         return lcfirst(self::upperCamelCase($name));
     }
 
+    /**
+     * Приводит строку к написанию Lower camel case
+     * @param string $url строка
+     * @return mixed Возвращает исправленную строку
+     */
+    protected static function removeQueryString($url) {
+        if ($url) {
+            $params = explode('&', $url, 2);
+            if (strpos($params[0], '=') === false) {
+                return rtrim($params[0], '/');
+            } else {
+                return '';
+            }
+        }
+    }
 }
