@@ -4,7 +4,7 @@
 namespace vendor\core\base;
 
 
-use app\controllers\App;
+use app\controllers\AppController;
 
 class View {
 
