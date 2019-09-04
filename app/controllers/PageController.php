@@ -8,9 +8,10 @@ namespace app\controllers;
 class PageController extends AppController {
 
     public function viewAction() {
-        debug($this->route);
-        debug($_GET);
-        echo 'Page::test';
+            $menu = $this->menu;
+            $title =  'Страница';
+            $this->set(compact('title', 'posts', 'menu'));
+//        debug($this->route);
     }
 
 }
